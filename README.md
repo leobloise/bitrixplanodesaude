@@ -11,4 +11,4 @@ Durante todo o processo, utilizei o composer para utilizar do seu autoload, PHPU
 ## Utilizando
 Para inicalizar a aplicação, você precisará do PHP instalado em sua máquina. Após isso, abra um terminal e digite: 'php app.php'.
 
-Além disso, também precisará do composer inicializado e instalado para instalar as depêndencias citadas.
+Além disso, também precisará do composer inicializado e instalado para instalar as depêndencias citadas e o autoload. Entretanto, caso queira somente o autoload, o programa também irá funcionar.

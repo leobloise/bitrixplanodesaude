@@ -22,7 +22,7 @@ class PlanoFamily extends Plano{
    protected function verifyFaixas(array $faixas): array
    {
         if(count($faixas) < 3) {
-            throw new ErrorException('Faixas must have more than 3 possibilitys');
+            throw new ErrorException('Faixas deve ter 3 possibilidades');
         }
 
         return $faixas;
@@ -31,24 +31,9 @@ class PlanoFamily extends Plano{
    protected function verifyPersons(array $persons): array
    {
         if(count($persons) < $this->mv) {
-            throw new ErrorException('This plan only supports four or more than four people');
+            throw new ErrorException("Esse plano suporta somente {$this->mv} pessoas");
         }
 
         return $persons;
-   }
-
-   public function getPersons(): array
-   {
-       return $this->persons;
-   }
-
-   public function getQtdPersons(): int
-   {
-       return count($this->persons);
-   }
-
-   public function getFaixa(): array
-   {
-       return $this->faixas;
    }
 }

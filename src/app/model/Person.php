@@ -9,9 +9,6 @@ class Person {
     
     private string $name;
     private int $age;
-    /**
-     * Age should be integer, because we'll use it like a number.
-     */
 
     public function __construct(string $name, int $age)
     {
@@ -22,7 +19,7 @@ class Person {
     private function verifyAge(int $age): int
     {
         if($age < 0 || $age > 130) {
-            throw new ErrorException('Age must be valid', 400);
+            throw new ErrorException('Idade deve ser válida');
         }
 
         return $age;
@@ -31,7 +28,7 @@ class Person {
     private function verifyName(string $name): string
     {
         if(mb_strlen($name) < 3) {
-            throw new ErrorException('The name must have 3 or more characters');
+            throw new ErrorException('O nome deve ter mais de 3 caracteres');
         }
 
         return $name;

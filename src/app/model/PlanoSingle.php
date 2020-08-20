@@ -37,18 +37,18 @@ final class PlanoSingle extends Plano {
         return $persons;
    }
 
-   public function getPersons(): array
-   {
-       return $this->persons;
-   }
+//    public function getPersons(): array
+//    {
+//        return $this->persons;
+//    }
 
-   public function getQtdPersons(): int
-   {
-       return count($this->persons);
-   }
+//    public function getQtdPersons(): int
+//    {
+//        return count($this->persons);
+//    }
 
-   public function getFaixa(): array
-   {
-       return $this->faixas;
-   }
+//    public function getFaixa(): array
+//    {
+//        return $this->faixas;
+//    }
 }

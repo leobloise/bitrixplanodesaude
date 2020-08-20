@@ -2,14 +2,7 @@
 
 namespace leona\system\app\helpers;
 
-use Error;
-
-class StringUtils {
-
-    public function __construct()
-    {
-        
-    }
+abstract class StringUtils {
 
     public static function removeWhiteSpaces(string $text): string
     {
@@ -30,10 +23,6 @@ class StringUtils {
             return false;
         }
 
-        if(is_numeric($name)){
-            return false;
-        }
-
         return true;
     }
 
@@ -42,9 +31,6 @@ class StringUtils {
         if(!is_numeric($age)){
             return false;
         } 
-        if(preg_match('/[A-z]/', $age) === 1) {
-            return false;
-        }
 
         $age = intval($age);
         
@@ -54,5 +40,11 @@ class StringUtils {
 
         return true;
     }
+
+    public static function splitPersonString(string $delimiter, string $text): array
+    {
+        $result = explode($delimiter, $text);
+        return $result;
+    } 
 
 }

@@ -2,7 +2,7 @@
 
 namespace leona\system\app\controller;
 
-use Error;
+use leona\system\app\helpers\PlanControllerHelper;
 use leona\system\app\helpers\StringUtils;
 use leona\system\app\model\Person;
 use leona\system\app\model\Plano;
@@ -12,7 +12,15 @@ use leona\system\app\service\BitixDAO;
 
 class PlanController {
 
-    private int $i = -1;
+    private int $i;
+    private BitixDAO $bit;
+    private PlanControllerHelper $pch;
+
+    public function __construct()
+    {
+        $this->bit = new BitixDAO();
+        $this->pch = new PlanControllerHelper();
+    }
 
     public function verifyCode(string $response): bool
     {
@@ -39,127 +47,42 @@ class PlanController {
         return true;
     }
 
-    private function verifyIfItExists(int $code): bool
-    {
-        $bit = new BitixDAO();
-        $temp = StringUtils::removeWhiteSpaces($code);
-        $cc = $bit->getPrecos($temp);
-
-        if(count($cc) === 0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     public function verifyPersons(string $temp)
     {
-        if(!$this->verifyIfAgeAndNameAreCorrect($temp)) {
+        if(!$this->pch->verifyIfAgeAndNameAreCorrect($temp)) {
             return false;
         } 
 
-        $result = $this->splitPersonString('-', $temp);
+        $result = StringUtils::splitPersonString('-', $temp);
             
-        if(!$this->verifyFormat($result)) {
+        if(!$this->pch->verifyFormat($result)) {
             return false;
         }
 
-        return true;
-    }
-
-
-
-    public function splitPersonString(string $delimiter, string $text): array
-    {
-        $result = explode($delimiter, $text);
         return $result;
     }
 
-    private function verifyFormat(array $result): bool
-    {
+
+    public function getPrecoTotal(string $code, string $qtd, array $persons){
+
+        $plano = $this->createPlan($persons, $code, $qtd);
+        $eachone = $plano->eachCost();
+        $total = $plano->totalCost();
         
-        if(!StringUtils::validName($result[0])) {
-            return false;
-        }
-
-        if(!StringUtils::validAge($result[1])) {
-            return false;
-        }
-        
-        return true;
+        return [$total, $eachone];
     }
 
-    private function verifyIfAgeAndNameAreCorrect(string $text): bool
+    private function createPlan(array $persons, int $code, int $qtd): Plano
     {
-        $result = strpos($text, '-');
-        if(!is_numeric($result)) {
-            return false;
-        }
-
-        return true;
-    }
-    
-    private function createPlan(string $code, string $qtd, array $persons): Plano
-    {
-        $bit = new BitixDAO();
-        $precos = $bit->getPrecos($code);
-
-        if(count($precos) === 1) {
-
-            return $this->createSinglePlan([
-                $precos[0]->faixa1,
-                $precos[0]->faixa2,
-                $precos[0]->faixa3
-            ], $persons, $code, $precos[0]->minimo_vidas);           
-
-        } else {
-
-            return $this->createFamilyPlan($persons,$code,$qtd);
-        }
-    }
-
-    private function createFamilyPlan(array $persons, int $code, int $qtd): Plano
-    {
-        $bit = new BitixDAO();
-        $precos = $bit->getPrecos($code);
-        $planos = $bit->getPlanos($code);
-        $tabelPreco = [];
-        foreach($precos as $key=>$preco) {
-
-            $this->i++;
-            
-            if(($preco->minimo_vidas - $qtd) === 0 && $this->i == 0) {
-                $tabelPreco[] = $preco;
-                break;
-            }
-            if(($preco->minimo_vidas - $qtd) > 0 && $this->i == 0) {
-                $tabelPreco[] = $preco;
-                continue;
-            }
-            if(($qtd - $preco->minimo_vidas) < 0 && $this->i==1) {
-                break;
-            }
-            if(($qtd - $preco->minimo_vidas) === 0 && $this->i==1) {
-                array_pop($tabelPreco);
-                $tabelPreco[] = $preco;
-                break;
-            }
-            if(($qtd - $preco->minimo_vidas) > 0 && $this->i==1) {
-                array_pop($tabelPreco);
-                $tabelPreco[] = $preco;
-                break;
-            }
-                $tabelPreco[] = $preco;
-        }
+        $precos =  $this->bit->getPrecos($code); 
+        $planos =  $this->bit->getPlanos($code); 
+        $tabelPreco = $this->getRightTabelPreco($precos, $qtd);
+        $objectPerson = $this->constructPersons($persons);
         $faixas = [
             $tabelPreco[0]->faixa1,
             $tabelPreco[0]->faixa2,
             $tabelPreco[0]->faixa3
         ];
-        $objectPerson = [];
-        foreach($persons as $person) {
-            $objectPerson[] = new Person($person[0], $person[1]);
-        }
         if($tabelPreco[0]->minimo_vidas == 1) {
             return new PlanoSingle($planos[0]->registro, $planos[0]->nome,
             $planos[0]->codigo, $objectPerson, $faixas, $tabelPreco[0]->minimo_vidas);
@@ -169,27 +92,65 @@ class PlanController {
         }   
     }
 
-    private function createSinglePlan(array $faixas, array $persons, int $code, int $mv)
+    private function constructPersons(array $persons): array
     {
-        $bit = new BitixDAO();
-        $plano = $bit->getPlanos($code);
-
         $objectPerson = [];
 
         foreach($persons as $person) {
             $objectPerson[] = new Person($person[0], $person[1]);
         }
 
-        return new PlanoSingle($plano[0]->registro, $plano[0]->nome,
-            $plano[0]->codigo, $objectPerson , $faixas, $mv);
+        return $objectPerson;
     }
 
-    public function getPrecoTotal(string $code, string $qtd, array $persons){
+    private function getRightTabelPreco(array $precos, int $qtd): array
+    {
+        $this->i = -1;
+        $tabelPreco = [];
+        foreach($precos as $preco) {
+            $this->i++;
+            echo $this->i;
+            if(($preco->minimo_vidas - $qtd) === 0 && $this->i == 0) {
+                echo "to aqui no 0 0passada";
+                $tabelPreco[] = $preco;
+                break;
+            }
+            if(($preco->minimo_vidas - $qtd) > 0 && $this->i == 0) {
+                echo "to aqui no >0 0passada";
+                $tabelPreco[] = $preco;
+                continue;
+            }
+            if(($qtd - $preco->minimo_vidas) < 0 && $this->i==1) {
+                echo "to aqui no <0 1passada";
+                break;
+            }
+            if(($qtd - $preco->minimo_vidas) === 0 && $this->i==1) {
+                echo "to aqui no =0 1passada";
+                array_pop($tabelPreco);
+                $tabelPreco[] = $preco;
+                break;
+            }
+            if(($qtd - $preco->minimo_vidas) > 0 && $this->i==1) {
+                echo "to aqui no >0 1passada";
+                array_pop($tabelPreco);
+                $tabelPreco[] = $preco;
+                break;
+            }
+            echo "to aqui no sem match";
+                $tabelPreco[] = $preco;
+        }
+        return $tabelPreco;
+    }
+    
+    private function verifyIfItExists(int $code): bool
+    {
+        $temp = StringUtils::removeWhiteSpaces($code);
+        $precos = $this->bit->getPrecos($temp); 
 
-        $plano = $this->createPlan($code, $qtd, $persons);
-        $eachone = $plano->eachCost();
-        $total = $plano->totalCost();
-        
-        return [$total, $eachone];
+        if(count($precos) === 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }

@@ -1,8 +1,6 @@
 <?php
 
 namespace leona\system\app\view;
-
-use Error;
 use leona\system\app\controller\PlanController;
 use leona\system\app\helpers\StringUtils;
 
@@ -31,11 +29,11 @@ class BitixView {
 
         $persons = $this->getPersons($qtd);
 
-        $precoTotal = $this->controller->getPrecoTotal($code, $qtd, $persons);
+        $precos = $this->controller->getPrecoTotal($code, $qtd, $persons);
         
-        $this->sendBasicMsg("O preço total do plano de saúde foi de {$precoTotal[0]} Reais");
+        $this->sendBasicMsg("O preço total do plano de saúde foi de {$precos[0]} Reais");
 
-        foreach($precoTotal[1] as $preco) {
+        foreach($precos[1] as $preco) {
             $this->sendBasicMsg("O preço do plano para {$preco[0]} de {$preco[1]} anos foi de {$preco[2]} Reais");
         }
         sleep(5);
@@ -49,38 +47,27 @@ class BitixView {
         $code = -1;
 
         while($code === -1) {
-
             $response = StringUtils::removeWhiteSpaces($this->getResponseFromUser());
-
             if(!$this->controller->verifyCode($response)) {
                 $this->sendBasicMsg('O seu código é inválido ou não existe, tente outro código');
                 continue;
             }
-
             $code = $response; 
-            
         }
-
         return $code;
-
     }
 
     private function getQtd(): int
     {
         $qtd = -1;
-
         while($qtd === -1) {
-
             $response = StringUtils::removeWhiteSpaces($this->getResponseFromUser());
-
             if(!$this->controller->verifyQtd($response)) {
                 $this->sendBasicMsg('Por favor, digite um número de beneficiários válido');
                 continue;
             }
-
             $qtd = $response;
         }
-
         return $qtd;
     }
 
@@ -89,9 +76,7 @@ class BitixView {
         $this->sendBasicMsg('Caso queira continuar com nossos serviços, digite \'y\'. 
         Caso não queria, deixe em branco');
         $res = StringUtils::removeWhiteSpaces($this->getResponseFromUser());
-        
         if($res==='y') {
-            echo "\r";
             $this->initialize();
         } else {
             exit();
@@ -103,27 +88,19 @@ class BitixView {
         $persons = [];
 
         for($i =0; $i < $qtd; $i++) {
-
-            system("cls");
             $this->sendBasicMsg('Digite o nome e idade do beneficiado!');
             $this->sendBasicMsg('Exemplo: Nome - idade');
-            
             $temp = StringUtils::removeWhiteSpaces($this->getResponseFromUser());
-
-            if(!$this->controller->verifyPersons($temp)) {
-                $this->sendBasicMsg('Por favor, digite um beneficiário válido');
+            $tempPersons = $this->controller->verifyPersons($temp);
+            if(!$tempPersons) {
+                $this->sendBasicMsg('Por favor digite um beneficiário válido');
                 $i--;
                 continue;
             }
-
-            $persons[]= $this->controller->splitPersonString('-', $temp);
+            $persons[]= $tempPersons;
         }
 
         return $persons;
-    }
-
-    public function teste() {
-        echo 'teste';
     }
 
     private function openReadbleStream()
@@ -131,7 +108,7 @@ class BitixView {
         return  fopen('php://stdin', 'r');
     }
 
-    public function getResponseFromUser()
+    private function getResponseFromUser()
     {
         return fgets($this->openReadbleStream());
     }

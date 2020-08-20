@@ -18,14 +18,6 @@ abstract class Plano {
         $this->code = $this->verifyCode($code);
     }
 
-    /**
-     * Para evitar de fazer uma busca dentro do banco de dados para verificar se os valores são corretos,
-     * optei por uma verificação "ducktype". Essa verificação torna-se útil, pois esse objeto será montado
-     * automaticamente pelo programa a partir do próprio banco de dados. Com isso, a probabilidade de erros
-     * diminui, pois há verificações prévias já executadas para a inserção desse dado dentro do banco de dados, e,
-     * também, evita de realizar consultas de modo excessivo.
-     */
-
     private function verifyReg(string $reg)
     {
         if(strpos($reg, 'reg') !== 0) {
@@ -89,7 +81,7 @@ abstract class Plano {
     }
 
     public function totalCost() 
-   {
+    {
        $this->reduce = function($carry, $one){
             $carry +=  $one[2];
             return $carry;
@@ -98,22 +90,7 @@ abstract class Plano {
       $eachOne = $this->eachCost();  
 
       return(array_reduce($eachOne, $this->reduce));
-   }
+    }
 
     abstract protected function verifyFaixas(array $faixas): array;
-
-    public function getReg()
-    {
-        return $this->reg;
-    }
-
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    public function getCode()
-    {
-        return $this->code;
-    }
 }

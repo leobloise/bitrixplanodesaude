@@ -39,18 +39,12 @@ class BitixDAO {
         return [...array_filter($planos, $this->filter)];
     }
 
-    //Remover mais tard  
-    // public function verifyIfExists(int $code)
-    // {
-    //     return $this->getPrecos($code);
-    // }
-
-    private function getAllPrecos(): array 
+    public function getAllPrecos(): array 
     {
         return json_decode(file_get_contents($this->pathToPrecos));
     }
 
-    private function getAllPlanos(): array 
+    public function getAllPlanos(): array 
     {
         return json_decode(file_get_contents($this->pathToPlanos));
     }

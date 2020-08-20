@@ -7,10 +7,11 @@
         {
             "name": "Leonardo Bloise",
             "email": "leonardo.bloise2000@gmail.com"
+            
         }
     ],
     "scripts": {
-        "testAll": "phpunit --colors tests"
+        "testAll": "phpunit --colors tests/"
     },
     "minimum-stability": "stable",
     "require": {},

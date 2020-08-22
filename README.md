@@ -1,6 +1,6 @@
 # Bitix - Plano de Saúde
 
-Esse programa foi feito como desafio para o processo seletivo da empresa Bitix, cujo qual eu estava concorrendo a vaga de desenvolveodr PHP.
+Esse programa foi feito como desafio para o processo seletivo da empresa Bitix, cujo qual eu estava concorrendo a vaga de desenvolvedor PHP.
 
 # O programa
 
